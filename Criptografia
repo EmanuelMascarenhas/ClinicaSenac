@@ -1,0 +1,24 @@
+
+import org.mindrot.jbcrypt.BCrypt;
+
+
+public class Criptografia {
+
+	public static String gerarHash(String senhaPlana) {
+	    System.out.println("Senha recebida: [" + senhaPlana + "]");
+
+	    if (senhaPlana == null || senhaPlana.isEmpty()) {
+	        System.out.println("Senha está nula ou vazia.");
+	        return null;
+	    }
+
+	    String hash = BCrypt.hashpw(senhaPlana, BCrypt.gensalt());
+	    System.out.println("Hash gerado: " + hash);
+	    return hash;
+	}
+
+    // Método para verificar a senha (no login)
+    public static boolean verificarSenha(String senhaPlana, String senhaHash) {
+        return BCrypt.checkpw(senhaPlana, senhaHash);
+    }
+}
