@@ -1,0 +1,139 @@
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Arrays;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+
+public class telalogin {
+
+	public JFrame frame;
+	private JTextField textField;
+	private JPasswordField passwordField;
+	JButton btnNewButton;
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					telalogin window = new telalogin();
+					window.frame.setVisible(true);
+					window.frame.setExtendedState(JFrame.NORMAL);  // <-- adiciona isso
+	                window.frame.toFront();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public telalogin() {
+		initialize();
+	}
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		frame = new JFrame();
+		frame.getContentPane().setBackground(new Color(44, 157, 211));
+		frame.setBounds(100, 100, 450, 300);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().setLayout(null);
+		
+		JLabel lblNewLabel = new JLabel("LOGIN");
+		lblNewLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
+		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel.setBounds(165, 33, 109, 23);
+		frame.getContentPane().add(lblNewLabel);
+		
+		JLabel lblNewLabel_1 = new JLabel("Email:");
+		lblNewLabel_1.setBounds(77, 91, 46, 14);
+		frame.getContentPane().add(lblNewLabel_1);
+		
+		JLabel lblNewLabel_1_1 = new JLabel("Senha:");
+		lblNewLabel_1_1.setBounds(77, 116, 46, 14);
+		frame.getContentPane().add(lblNewLabel_1_1);
+		
+		textField = new JTextField();
+		textField.setHorizontalAlignment(SwingConstants.LEFT);
+		textField.setBounds(177, 88, 175, 20);
+		frame.getContentPane().add(textField);
+		textField.setColumns(10);
+		
+		passwordField = new JPasswordField();
+		passwordField.setBounds(177, 113, 175, 20);
+		frame.getContentPane().add(passwordField);
+		
+		btnNewButton = new JButton("login");
+		btnNewButton.setBounds(79, 187, 113, 23);
+		btnNewButton.addActionListener(e -> {
+       	 
+
+        	String usuario = textField.getText().trim();
+        	char[] senhaCharArray = passwordField.getPassword();
+
+        	try (Connection conn = BancoDeDados.conectar()) {
+        	    String sql = "SELECT * FROM usuarios WHERE email = ?";
+        	    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        	        stmt.setString(1, usuario);
+        	        ResultSet rs = stmt.executeQuery();
+
+        	        if (rs.next()) {
+        	            String senhaHash = rs.getString("senha"); // senha armazenada com hash (bcrypt)
+        	            int usuarioId = rs.getInt("id"); // útil para passar para a próxima tela
+
+        	            // Verifica senha criptografada
+        	            if (Criptografia.verificarSenha(String.valueOf(senhaCharArray), senhaHash)) {
+        	                JOptionPane.showMessageDialog(null, "Login bem-sucedido!");
+        	                exames window = new exames(usuarioId);
+        	                window.setVisible(true);                        // <-- e isso
+        	                frame.dispose(); // Fecha tela de login
+        	            } else {
+        	                JOptionPane.showMessageDialog(null, "Usuário ou senha inválidos.");
+        	            }
+        	        } else {
+        	            JOptionPane.showMessageDialog(null, "Usuário ou senha inválidos.");
+        	        }
+        	    }
+        	} catch (Exception ex) {
+        	    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+        	} finally {
+        	    // limpa os dados da senha da memória
+        	    Arrays.fill(senhaCharArray, '0');
+        	}
+        });
+		frame.getContentPane().add(btnNewButton);
+		
+		JButton btnCadastrar = new JButton("cadastrar");
+		btnCadastrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				telacadastro window = new telacadastro();
+				window.frame.setVisible(true);
+			    window.frame.setExtendedState(JFrame.NORMAL);  // <-- adiciona isso
+			    window.frame.toFront();                        // <-- e isso
+			    frame.dispose(); // Fecha tela de login
+			}
+		});
+		btnCadastrar.setBounds(256, 187, 113, 23);
+		frame.getContentPane().add(btnCadastrar);
+		
+	}
+
+}
