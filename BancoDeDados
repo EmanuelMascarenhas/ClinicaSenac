@@ -1,0 +1,70 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import org.mindrot.jbcrypt.BCrypt;
+import javax.swing.JOptionPane;
+
+
+public class BancoDeDados {
+
+    private static final String URL = "jdbc:mysql://localhost:3306/cadastro?useSSL=false&serverTimezone=UTC";
+    private static final String USUARIO = "root";
+    private static final String SENHA = "Aluno";
+    private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
+
+    public static Connection conectar() {
+        try {
+            Class.forName(DRIVER);
+            return DriverManager.getConnection(URL, USUARIO, SENHA);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Erro ao conectar no banco de dados: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public static void desconectar(Connection conn) {
+        if (conn != null) {
+            try {
+                if (!conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Erro ao desconectar: " + e.getMessage());
+            }
+        }
+    }
+
+    public boolean estaConectado() {
+        try (Connection conn = conectar()) {
+            return conn != null && !conn.isClosed();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+	public void inserirUsuario(String email, String senhaHash) {
+			   
+			{
+			    try (Connection conn = conectar()) {
+
+			        String sql = "INSERT INTO usuarios (email, senha) " +
+			                     "VALUES (?, ?)";
+
+			        PreparedStatement stmt = conn.prepareStatement(sql);
+
+			        stmt.setString(1, email);
+			        stmt.setString(2, senhaHash);
+			        
+
+			        stmt.executeUpdate();
+
+			        JOptionPane.showMessageDialog(null, "Cadastro realizado com sucesso!", "Aviso", JOptionPane.INFORMATION_MESSAGE);
+
+			    } catch (Exception e) {
+			        JOptionPane.showMessageDialog(null, "Erro ao salvar usuário: " + e.getMessage());
+			    }
+			}
+	}
+}
