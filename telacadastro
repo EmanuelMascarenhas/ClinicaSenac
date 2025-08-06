@@ -1,0 +1,178 @@
+import java.awt.Color;
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
+
+
+
+import java.awt.Font;
+import javax.swing.JButton;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import java.awt.event.ActionListener;
+import java.util.Random;
+import java.awt.event.ActionEvent;
+
+public class telacadastro {
+
+	public JFrame frame;
+	private JPasswordField passwordField;
+	private JPasswordField passwordField_1;
+	private JTextField textField;
+	
+	String Email;
+	String senha;
+	String confirmesenha;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					telacadastro window = new telacadastro();
+					window.frame.setVisible(true);
+					window.frame.setExtendedState(JFrame.NORMAL);  // <-- adiciona isso
+	                window.frame.toFront();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public telacadastro() {
+		initialize();
+	}
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		frame = new JFrame();
+		frame.getContentPane().setBackground(new Color(44, 157, 211));
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.getContentPane().setLayout(null);
+		
+		JLabel lblNewLabel = new JLabel("SEXSHOPING");
+		lblNewLabel.setFont(new Font("Times New Roman", Font.BOLD, 30));
+		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel.setBounds(32, 11, 353, 62);
+		frame.getContentPane().add(lblNewLabel);
+		
+		
+		
+		
+		
+		JLabel lblNewLabel_1 = new JLabel("Email: ");
+		lblNewLabel_1.setHorizontalAlignment(SwingConstants.LEFT);
+		lblNewLabel_1.setBounds(76, 82, 46, 14);
+		frame.getContentPane().add(lblNewLabel_1);
+		
+		JLabel lblNewLabel_1_1 = new JLabel("Senha:");
+		lblNewLabel_1_1.setHorizontalAlignment(SwingConstants.LEFT);
+		lblNewLabel_1_1.setBounds(76, 107, 46, 14);
+		frame.getContentPane().add(lblNewLabel_1_1);
+		
+		JLabel lblNewLabel_1_2 = new JLabel("Confirme Senha:");
+		lblNewLabel_1_2.setHorizontalAlignment(SwingConstants.LEFT);
+		lblNewLabel_1_2.setBounds(76, 132, 89, 14);
+		frame.getContentPane().add(lblNewLabel_1_2);
+		
+		passwordField = new JPasswordField();
+		passwordField.setBounds(163, 104, 120, 20);
+		frame.getContentPane().add(passwordField);
+		
+		passwordField_1 = new JPasswordField();
+		passwordField_1.setBounds(163, 129, 120, 20);
+		frame.getContentPane().add(passwordField_1);
+		
+		textField = new JTextField();
+		textField.setBounds(163, 79, 120, 20);
+		frame.getContentPane().add(textField);
+		textField.setColumns(10);
+		
+		JButton btnCadastrar = new JButton("CADASTRAR");
+		btnCadastrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Email = textField.getText().trim();
+				senha = new String(((JPasswordField) passwordField).getPassword()).trim();
+				confirmesenha = new String(((JPasswordField) passwordField_1).getPassword()).trim();
+				if(Email.isEmpty() == false) {
+					if(senha.isEmpty() == false) {
+						if(confirmesenha.isEmpty() == false) {
+							if(Email.toLowerCase().matches("[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}")) {
+								BancoDeDados banc =new BancoDeDados();
+								banc.conectar();
+								if (banc.estaConectado()) {
+									if (senha.equals(confirmesenha)) {
+										Random codigodeverificacao = new Random();
+										int verificacao = 100000+codigodeverificacao.nextInt(900000);
+										EnviarEmail env = new EnviarEmail();
+										String Messagem = "Olá. Sejá bem vindo ao How I am."+"\n"+"Aqui esta o seu codigo de verificação para cadastro"+"\n"+verificacao;
+										String Assunto = "Cadastro realizado com sucesso";
+										env.enviar(Email, Assunto, Messagem);
+										String input;
+										int resposta = 0;
+										while(true) {
+											if(resposta != verificacao) {
+												input = JOptionPane.showInputDialog(null,"Digite o codigo de confirmação");
+												resposta = Integer.parseInt(input);
+											} 
+											else if(resposta == verificacao) {
+												break;
+											}
+											
+											String senhaHash = Criptografia.gerarHash(senha);								            
+								            banc.inserirUsuario(Email, senhaHash);
+								            telalogin window = new telalogin();
+								            window.frame.setVisible(true);
+								            window.frame.setExtendedState(JFrame.NORMAL);  // <-- adiciona isso
+								            window.frame.toFront();                        // <-- e isso
+								            frame.dispose(); // Fecha tela de login
+										}
+									} else {
+										JOptionPane.showMessageDialog(null, "Senha invalida!!","Erro",3);
+									}
+								} else {
+									JOptionPane.showMessageDialog(null, "Não foi possivel conectar o banco!","Erro",3);
+								}
+							} else {
+								JOptionPane.showMessageDialog(null, "Verifique Email!","Erro",3);
+							}
+						} else {
+							JOptionPane.showMessageDialog(null, "Confirmar senha não pode ficar vazio!","Erro",3);
+						}
+					} else {
+						JOptionPane.showMessageDialog(null, "Senha não pode ficar vazio!","Erro",3);
+					}					
+				} else {
+					JOptionPane.showMessageDialog(null, "Email não pode ficar vazio!","Erro",3);
+				}
+			}
+		});
+		
+		btnCadastrar.setBounds(163, 166, 106, 23);
+		frame.getContentPane().add(btnCadastrar);
+		
+		JButton btnVoltar = new JButton("VOLTAR");
+		btnVoltar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				telalogin window = new telalogin();
+				window.frame.setVisible(true);
+			    window.frame.setExtendedState(JFrame.NORMAL);  // <-- adiciona isso
+			    window.frame.toFront();                        // <-- e isso
+			    frame.dispose(); // Fecha tela de login
+			}
+		});
+		btnVoltar.setBounds(173, 205, 89, 23);
+		frame.getContentPane().add(btnVoltar);
+	}
+}
